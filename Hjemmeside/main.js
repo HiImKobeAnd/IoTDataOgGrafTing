@@ -1,41 +1,59 @@
-import './style.css'
-import Chart from 'chart.js/auto'
-import Pocketbase from "pocketbase"
+import "./style.css";
+import Chart, { Colors } from "chart.js/auto";
+import Pocketbase from "pocketbase";
+const pb = new Pocketbase("http://192.168.0.112:80");
 
-document.querySelector('#app').innerHTML = `
+// * HTML setuper
+document.querySelector("#app").innerHTML = `
   <div>
-  <canvas id="myChart" style="width:100%;max-width:600px"></canvas>
+  <canvas id="myChart" style="width:100vw;max-width:600vh"></canvas>
   </div>
-`
-const pb = new Pocketbase('http://192.168.1.23:80');
+`;
 
-let response = await pb.collection("temp").getFullList(100, {sort: "created"})
+// * setup of chart
+let temperatures = [];
+let timestamps = [];
 
-pb.collection("temp").subscribe("*", function (e) {
-  console.log(e.record)
-})
+let allRecords = await pb
+  .collection("temp")
+  .getFullList(100, { sort: "created" });
 
-//console.log(response)
+for (let x in allRecords) {
+  temperatures.push(allRecords[x].temperatur);
+  timestamps.push(allRecords[x].created);
+}
 
-let xValues = [50,60,70,80,90,100,110,120,130,140,150];
-let yValues = [7,8,8,9,9,9,10,11,14,14,15];
-
-new Chart("myChart", {
-  type: "line",
-  data: {
-    labels: xValues,
-    datasets: [{
-      fill: false,
-      lineTension: 0,
+const data = {
+  labels: timestamps,
+  datasets: [
+    {
+      label: "temperatur",
+      data: temperatures,
       backgroundColor: "rgba(0,0,255,1.0)",
       borderColor: "rgba(0,0,255,0.1)",
-      data: yValues
-    }]
-  },
+    },
+  ],
+};
+
+let config = {
+  type: "line",
+  data: data,
   options: {
-    legend: {display: false},
-    scales: {
-      yAxes: [{ticks: {min: 6, max:16}}],
-    }
-  }
+    responsive: true,
+    plugins: {
+      title: {
+        display: true,
+        text: "Temperatur til tid",
+      },
+    },
+  },
+};
+
+let chart = new Chart("myChart", config);
+
+// * Realtime integration
+pb.collection("temp").subscribe("*", function (e) {
+  chart.data.labels.push(e.record.created);
+  chart.data.datasets[0].data.push(e.record.temperatur);
+  chart.update();
 });
