@@ -57,12 +57,17 @@ pb.collection("temp").subscribe("*", function (e) {
 // * Delete all records
 document
   .getElementById("deleteAllRecords")
-  .addEventListener("click", function () {
-    for (let x = 0; x < allRecords.length; x++) {
-      const recordId = allRecords[x].id;
+  .addEventListener("click", async function () {
+    let deleteCollection = await pb
+      .collection("temp")
+      .getFullList(10000, { sort: "created" });
+
+    console.log(deleteCollection);
+    for (let x = 0; x < deleteCollection.length; x++) {
+      const recordId = deleteCollection[x].id;
       pb.collection("temp").delete(recordId, { $autoCancel: false });
     }
-    allRecords = [];
+
     chart.data.labels = [];
     chart.data.datasets[0].data = [];
     chart.update();
