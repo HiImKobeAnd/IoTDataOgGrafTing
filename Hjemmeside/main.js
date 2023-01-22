@@ -7,6 +7,7 @@ const pb = new Pocketbase("http://192.168.0.112:80");
 document.querySelector("#app").innerHTML = `
   <div>
   <canvas id="myChart" style="width:100vw;max-width:600vh"></canvas>
+  <input id="deleteAllRecords" type="button" value="Delete all records">
   </div>
 `;
 
@@ -53,7 +54,24 @@ let chart = new Chart("myChart", config);
 
 // * Realtime integration
 pb.collection("temp").subscribe("*", function (e) {
-  chart.data.labels.push(e.record.created);
-  chart.data.datasets[0].data.push(e.record.temperatur);
-  chart.update();
+  if (e.action == "create") {
+    allRecords.push(e.record);
+    chart.data.labels.push(e.record.created);
+    chart.data.datasets[0].data.push(e.record.temperatur);
+    chart.update();
+  }
 });
+
+// * Delete all records
+document
+  .getElementById("deleteAllRecords")
+  .addEventListener("click", function () {
+    for (let x = 0; x < allRecords.length; x++) {
+      const recordId = allRecords[x].id;
+      pb.collection("temp").delete(recordId, { $autoCancel: false });
+    }
+    allRecords = [];
+    chart.data.labels = [];
+    chart.data.datasets[0].data = [];
+    chart.update();
+  });
