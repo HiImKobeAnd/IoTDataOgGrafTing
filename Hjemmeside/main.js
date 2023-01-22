@@ -3,15 +3,7 @@ import Chart, { Colors } from "chart.js/auto";
 import Pocketbase from "pocketbase";
 const pb = new Pocketbase("http://192.168.0.112:80");
 
-// * HTML setuper
-document.querySelector("#app").innerHTML = `
-  <div>
-  <canvas id="myChart" style="width:100vw;max-width:600vh"></canvas>
-  <input id="deleteAllRecords" type="button" value="Delete all records">
-  </div>
-`;
-
-// * setup of chart
+// * setup of data
 let temperatures = [];
 let timestamps = [];
 
@@ -23,7 +15,7 @@ for (let x in allRecords) {
   temperatures.push(allRecords[x].temperatur);
   timestamps.push(allRecords[x].created);
 }
-
+// * setup of chart
 const data = {
   labels: timestamps,
   datasets: [
