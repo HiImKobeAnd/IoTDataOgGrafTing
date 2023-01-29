@@ -1,3 +1,4 @@
+//* setup
 import "./style.css";
 import Chart, { Colors } from "chart.js/auto";
 import Pocketbase from "pocketbase";
